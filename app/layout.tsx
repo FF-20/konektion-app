@@ -4,6 +4,8 @@ import { Raleway } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import PrivyProvider from "@/components/privy-provider";
+import AuthButton from "@/components/header-auth";
 
 const raleWay = Raleway({
     subsets: ["latin"],
@@ -63,42 +65,43 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body
-                className={raleWay.variable}
-            >
+            <body className={raleWay.variable}>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="system"
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <main className="min-h-screen flex flex-col items-center">
-                        <div className="flex-1 w-full flex flex-col items-center h-full">
-                            <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 z-50">
-                                <div className="w-full max-w-5xl flex justify-between items-center p-3 text-sm">
-                                    <div className="flex gap-5 items-center font-semibold">
-                                        <Link
-                                            href="/"
-                                            className="flex items-center gap-2"
-                                        >
-                                            <img
-                                                src="/android-chrome-192x192.png"
-                                                alt="Konektion"
-                                                className="h-7 w-7"
-                                            />
-                                            <span>Konektion</span>
-                                        </Link>
+                    <PrivyProvider>
+                        <main className="min-h-screen flex flex-col items-center">
+                            <div className="flex-1 w-full flex flex-col items-center h-full">
+                                <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 z-50">
+                                    <div className="w-full max-w-5xl flex justify-between items-center p-3 text-sm">
+                                        <div className="flex gap-5 items-center font-semibold">
+                                            <Link
+                                                href="/"
+                                                className="flex items-center gap-2"
+                                            >
+                                                <img
+                                                    src="/android-chrome-192x192.png"
+                                                    alt="Konektion"
+                                                    className="h-7 w-7"
+                                                />
+                                                <span>Konektion</span>
+                                            </Link>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <AuthButton />
+                                            <ThemeSwitcher />
+                                        </div>
                                     </div>
-                                    <div className="flex items-center">
-                                        <ThemeSwitcher />
-                                    </div>
+                                </nav>
+                                <div className="flex flex-1 justify-center items-center w-full h-full max-w-5xl">
+                                    {children}
                                 </div>
-                            </nav>
-                            <div className="flex flex-1 justify-center items-center w-full h-full max-w-5xl">
-                                {children}
                             </div>
-                        </div>
-                    </main>
+                        </main>
+                    </PrivyProvider>
                 </ThemeProvider>
             </body>
         </html>
