@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useLogin } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 function LoginPage() {
     const { ready, authenticated } = usePrivy();
     const router = useRouter();
+
+    const { login } = useLogin({
+        onComplete: () => router.push("/dashboard"),
+    });
 
     return (
         <div>
@@ -32,7 +36,7 @@ function LoginPage() {
                     ) : (
                         <Button
                             className="bg-[#666eff] hover:bg-[#666eff]/90 py-3 px-6 text-white rounded-lg transition-colors z-20"
-                            // onClick={login}
+                            onClick={login}
                         >
                             KONEK NOW!
                         </Button>

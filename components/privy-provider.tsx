@@ -58,7 +58,7 @@ export default function PrivyProviders({
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },
-        defaultChain: scrollSepolia,
+        defaultChain: sepolia,
         supportedChains: [sepolia, scrollSepolia],
       }}
     >
