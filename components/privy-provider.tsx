@@ -4,7 +4,7 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { useTheme } from "next-themes";
 import { defineChain, http } from "viem";
 
-// import { SmartWalletsProvider } from "@privy-io/react-auth/smart-wallets";
+import {SmartWalletsProvider} from '@privy-io/react-auth/smart-wallets';
 import { base, sepolia, scrollSepolia } from "viem/chains";
 import { WagmiProvider, createConfig } from "@privy-io/wagmi";
 
@@ -62,7 +62,7 @@ export default function PrivyProviders({
         supportedChains: [sepolia, scrollSepolia],
       }}
     >
-      {/* <SmartWalletsProvider
+      <SmartWalletsProvider
         config={{
           paymasterContext: {
             mode: "SPONSORED",
@@ -77,11 +77,11 @@ export default function PrivyProviders({
             },
           },
         }}
-      > */}
+      >
         {/* <WagmiProvider config={wagmiConfig} reconnectOnMount={false}> */}
           {children}
         {/* </WagmiProvider> */}
-      {/* </SmartWalletsProvider> */}
+      </SmartWalletsProvider>
     </PrivyProvider>
   );
 }

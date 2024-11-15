@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Raleway } from "next/font/google";
+import { Fredoka, Raleway } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import PrivyProvider from "@/components/privy-provider";
 import AuthButton from "@/components/header-auth";
 
-const raleWay = Raleway({
-    subsets: ["latin"],
-    variable: "--font-raleway",
-    weight: ["300", "400", "500", "600", "700"],
+const fredoka = Fredoka({
+  subsets: ["latin"],
+  variable: "--font-fredoka",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const APP_NAME = "Konektion";
@@ -65,7 +65,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={raleWay.variable}>
+            <body className={fredoka.variable}>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="system"
@@ -85,7 +85,7 @@ export default function RootLayout({
                                                 <img
                                                     src="/android-chrome-192x192.png"
                                                     alt="Konektion"
-                                                    className="h-7 w-7"
+                                                    className="h-10 w-10"
                                                 />
                                                 <span>Konektion</span>
                                             </Link>
