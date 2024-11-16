@@ -1,22 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
 import { useTheme } from "next-themes";
-import { defineChain, http } from "viem";
 
-import {SmartWalletsProvider} from '@privy-io/react-auth/smart-wallets';
-import { baseSepolia, sepolia, scrollSepolia } from "viem/chains";
-import { WagmiProvider, createConfig } from "@privy-io/wagmi";
-
-// import { OnchainKitProvider } from "@coinbase/onchainkit";
+import { SmartWalletsProvider } from "@privy-io/react-auth/smart-wallets";
+import { sepolia } from "viem/chains";
 
 export default function PrivyProviders({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   return (
     <PrivyProvider
@@ -26,38 +21,32 @@ export default function PrivyProviders({
         appearance: {
           theme: theme === "dark" ? "dark" : "light",
           accentColor: "#676FFF",
-          // logo: 'https://your-logo-url',
+          // logo: 'https://your-logo-url/',
         },
         // Create embedded wallets for users who don't have a wallet
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },
-        defaultChain: sepolia,
-        supportedChains: [baseSepolia, sepolia],
+        defaultChain:sepolia,
+        supportedChains:[sepolia]
       }}
     >
       <SmartWalletsProvider
-        config={{
-          paymasterContext: {
-            mode: "SPONSORED",
-            calculateGasLimits: true,
-            expiryDuration: 300,
-            sponsorshipInfo: {
-              webhookData: {},
-              smartAccountInfo: {
-                name: "BICONOMY",
-                version: "2.0.0",
+          config={{
+            paymasterContext: {
+              mode: "SPONSORED",
+              calculateGasLimits: true,
+              expiryDuration: 300,
+              sponsorshipInfo: {
+                webhookData: {},
+                smartAccountInfo: {
+                  name: "BICONOMY",
+                  version: "2.0.0",
+                },
               },
-            },
-          },
-        }}
-      >
-        {/* <OnchainKitProvider apiKey="oIivHYJeI70CgGdccASaEfX8E6eXj8IU" chain={baseSepolia}> */}
-          {children}
-        {/* </OnchainKitProvider> */}
-        {/* <WagmiProvider config={wagmiConfig} reconnectOnMount={false}> */}
-        {/* </WagmiProvider> */}
-      </SmartWalletsProvider>
+            }
+          }}
+      >{children}</SmartWalletsProvider>
     </PrivyProvider>
   );
 }
