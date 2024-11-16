@@ -9,7 +9,7 @@ import { ethers } from "ethers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { parseEther, parseGwei, defineChain, encodeFunctionData } from "viem";
-import { baseSepolia, sepolia } from "viem/chains";
+import { baseSepolia, sepolia, scrollSepolia } from "viem/chains";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -29,7 +29,12 @@ import twosball from "../context/twosball.json";
 
 import { createPimlicoClient } from "permissionless/clients/pimlico";
 import { createSmartAccountClient } from "permissionless";
-
+import {
+  toSimpleSmartAccount,
+  toSafeSmartAccount,
+  toEcdsaKernelSmartAccount,
+} from "permissionless/accounts";
+import { privateKeyToAccount } from "viem/accounts"; 
 
 const account = {};
 
@@ -44,6 +49,7 @@ const BalanceCard = () => {
   const [walletInitialized, setWalletInitialized] = useState(false);
   const [smartWalletInitialized, setSmartWalletInitialized] = useState(true);
   const { client } = useSmartWallets();
+
   // const { writeContract } = useWriteContract();
 
   const scrollSepolias = defineChain({
@@ -73,35 +79,60 @@ const BalanceCard = () => {
 
   //THIS
   const baseTx = async () => {
-    const rpcUrl = 'https://api.developer.coinbase.com/rpc/v1/base-sepolia/oIivHYJeI70CgGdccASaEfX8E6eXj8IU'; // Get yours at https://www.coinbase.com/cloud/products/base/rpc
+    console.log("zesty");
+    const rpcUrl =
+      "https://api.developer.coinbase.com/rpc/v1/base-sepolia/oIivHYJeI70CgGdccASaEfX8E6eXj8IU"; // Get yours at https://www.coinbase.com/cloud/products/base/rpc
+
     const cloudPaymaster = createPimlicoClient({
       chain: baseSepolia,
       transport: http(rpcUrl),
     });
+    console.log(cloudPaymaster);
 
-    const account = '';
+    const smartAccountClient = createPublicClient({
+      chain: baseSepolia,
+      transport: http(rpcUrl),
+    });
+    console.log(smartAccountClient);
+
+    const owner = privateKeyToAccount(
+      "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+    );
+    console.log(owner);
+
+    const account = await toSimpleSmartAccount({
+      owner,
+      client: smartAccountClient,
+      entryPoint: {
+        address: "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
+        version: "0.6",
+      },
+    });
+    console.log(account);
+
+    // const account = "";
     const baseSmartWalletClient = createSmartAccountClient({
-      account: '0x040B97f5074E905C8fcd301Bf0815B78A001235D',
+      account,
       chain: baseSepolia,
       bundlerTransport: http(rpcUrl),
-      paymaster: cloudPaymaster
-    })
+      paymaster: cloudPaymaster,
+    });
+    console.log(baseSmartWalletClient);
 
     const callData = encodeFunctionData({
       abi: twosball,
-      functionName: 'mintTo',
-      args: ['0x040B97f5074E905C8fcd301Bf0815B78A001235D', 0],
-    })
+      functionName: "mintTo",
+      args: [baseSmartWalletClient.account.address, 0],
+    });
 
     const txHash = await baseSmartWalletClient.sendTransaction({
-      account: '0x040B97f5074E905C8fcd301Bf0815B78A001235D',
-      to: "0x3E62e75e71Ae8342F255cF6A8A3574fcdC1C7610",
+      account: baseSmartWalletClient.account,
+      to: "0x66519FCAee1Ed65bc9e0aCc25cCD900668D3eD49",
       data: callData,
-      value: BigInt(0)
-    })
+      value: BigInt(0),
+    });
 
     console.log(txHash);
-
   };
 
   const getProvider = () => {
@@ -173,13 +204,15 @@ const BalanceCard = () => {
     // } finally {
     //   setIsLoading(false);
     // }
-    const balance = await getSmartWalletBalance(
-      "0x040B97f5074E905C8fcd301Bf0815B78A001235D"
-    );
-    console.log(balance);
-    const balanceInEth = ethers.utils.formatEther(balance.wei);
-    setSmartWalletBalance(balanceInEth);
-    console.log("SHOUDL DISPLAY: ", balanceInEth);
+
+
+    // const balance = await getSmartWalletBalance(
+    //   "0x040B97f5074E905C8fcd301Bf0815B78A001235D"
+    // );
+    // console.log(balance);
+    // const balanceInEth = ethers.utils.formatEther(balance.wei);
+    // setSmartWalletBalance(balanceInEth);
+    // console.log("SHOUDL DISPLAY: ", balanceInEth);
   };
 
   const FormSchema = z.object({
@@ -211,16 +244,20 @@ const BalanceCard = () => {
     if (!client) return;
     console.log(client.client);
     console.log(baseSepolia);
+
     const txHash = await client.sendTransaction({
       account: client.account,
-      chain: baseSepolia,
+      chain: client.chain,
       to: "0x3E62e75e71Ae8342F255cF6A8A3574fcdC1C7610", // SW address.
       // to: `0x${values.receiver.slice(2)}`,
       value: parseEther("0.01"),
       // value: parseEther(values.amount),
       maxFeePerGas: parseGwei("2"), // don't change this
       maxPriorityFeePerGas: parseGwei("2"), // don't change this
+      // maxFeePerGas: parseGwei("20"),
+      // maxPriorityFeePerGas: parseGwei("0")
     });
+
     console.log(txHash);
     // baseTx();
   };
@@ -252,104 +289,116 @@ const BalanceCard = () => {
 
   return (
     <>
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center text-center">
-            <span>Smart Wallet Balance (Sepolia)</span>
-            {!smartWalletInitialized && (
-              <span className="text-xs text-yellow-500 ms-1">
-                Initializing...
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
-
-          <div className="space-y-4">
-            <div className="text-center">
-              {isLoading ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                  <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                  <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                </div>
-              ) : (
-                <p className="text-2xl font-bold">
-                  {smartWalletBalance
-                    ? `${Number(smartWalletBalance).toFixed(4)} ETH`
-                    : "0 ETH"}
-                </p>
-              )}
-            </div>
-
-            {user?.smartWallet?.address && (
-              <div className="text-center">
-                <span className="text-xs break-all text-gray-500">
-                  {user.smartWallet.address}
+      <div className="relative w-full max-w-md mx-auto">
+        <div className="absolute rounded-lg inset-0 bg-gradient-to-r via-violet-500 from-gray-400 to-indigo-700 opacity-20 pointer-events-none"></div>
+        <Card className="relative bg-transparent w-full max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="flex justify-between items-center text-center">
+              <span>Smart Wallet Balance (Sepolia)</span>
+              {!smartWalletInitialized && (
+                <span className="text-xs text-yellow-500 ms-1">
+                  Initializing...
                 </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
+
+            <div className="space-y-4">
+              <div className="text-center">
+                {isLoading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold">
+                    {smartWalletBalance
+                      ? `${Number(smartWalletBalance).toFixed(4)} ETH`
+                      : "0 ETH"}
+                  </p>
+                )}
               </div>
-            )}
-
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(sendSmartWalletTransaction)}
-                className="w-full space-y-6"
-              >
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder="Amount" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="receiver"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder="Receiver" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  onClick={updateBalance}
-                  disabled={isLoading || !walletInitialized}
-                  className="w-full"
-                >
-                  {isLoading ? "Refreshing..." : "Refresh Balance"}
-                </Button>
-                <Button
-                  //   onClick={sendSmartWalletTransaction}
-                  // disabled={isLoading || !walletInitialized}
-                  className="w-full"
-                  type="submit"
-                >
-                  Send Smart Wallet Transaction
-                </Button>
-              </form>
-            </Form>
-
-            {/* <Button
-              onClick={sendSmartWalletTransaction}
-              // disabled={isLoading || !walletInitialized}
-              className="w-full"
-            >
-              Send Smart Wallet Transaction
-            </Button> */}
 
             <Button onClick={testSmartContractCall} className="w-full">
               Testing Smart Contract Sponsored Call
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+              {user?.smartWallet?.address && (
+                <div className="text-center">
+                  <span className="text-xs break-all text-gray-500">
+                    {user.smartWallet.address}
+                  </span>
+                </div>
+              )}
+
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(sendSmartWalletTransaction)}
+                  className="w-full space-y-6"
+                >
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Amount" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="receiver"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Receiver" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    onClick={updateBalance}
+                    disabled={isLoading || !walletInitialized}
+                    className="w-full"
+                  >
+                    {isLoading ? "Refreshing..." : "Refresh Balance"}
+                  </Button>
+                  <Button
+                    //   onClick={sendSmartWalletTransaction}
+                    // disabled={isLoading || !walletInitialized}
+                    className="w-full"
+                    type="submit"
+                  >
+                    Send Smart Wallet Transaction
+                  </Button>
+                </form>
+              </Form>
+
+              {/* <Button
+                onClick={sendSmartWalletTransaction}
+                // disabled={isLoading || !walletInitialized}
+                className="w-full"
+              >
+                Send Smart Wallet Transaction
+              </Button> */}
+
+              <Button
+                onClick={testSmartContractCall}
+                className="w-full"
+              >
+                Testing Smart Contract Sponsored Call
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div >
+      <div className="absolute bottom-0 left-0 w-[10%] h-[50%]  bg-indigo-800 blur-[154.2px]"></div>
+      <div className="absolute top-0 right-0 w-[10%] h-[50%]  bg-violet-500 blur-[154.2px]"></div>
+
     </>
   );
 };

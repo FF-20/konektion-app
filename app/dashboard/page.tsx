@@ -1,5 +1,7 @@
+'use client'
 import BalanceCard from "@/components/balance-card";
 import DepositBtn from "@/components/deposit-btn";
+import ContractListener from "@/components/contract-listener";
 
 export default function DashboardPage() {
     return (
@@ -8,6 +10,7 @@ export default function DashboardPage() {
                 <h1 className="text-3xl text-center font-bold">Welcome Back</h1>
                 <DepositBtn />
                 <BalanceCard />
+                <ContractListener/>
             </main>
         </>
     );

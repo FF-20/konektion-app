@@ -11,6 +11,35 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Left Div Animation */
+  @keyframes moveLeft {
+    0%, 100% {
+      left: 0; /* Start at the left edge */
+    }
+    50% {
+      left: 7%; /* Stop near the center but not overlap */
+    }
+  }
+
+  /* Right Div Animation */
+  @keyframes moveRight {
+    0%, 100% {
+      right: 0; /* Start at the right edge */
+    }
+    50% {
+      right: 7%; /* Stop near the center but not overlap */
+    }
+  }
+
+  /* Apply animations with infinite looping */
+  .animate-move-left {
+    animation: moveLeft 2s infinite ease-in-out;
+  }
+
+  .animate-move-right {
+    animation: moveRight 2s infinite ease-in-out;
+  }
 }
 
 @layer base {
