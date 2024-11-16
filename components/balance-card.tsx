@@ -34,8 +34,7 @@ import {
   toSafeSmartAccount,
   toEcdsaKernelSmartAccount,
 } from "permissionless/accounts";
-import { privateKeyToAccount } from "viem/accounts";
-import ContractListener from "./contract-listener";
+import { privateKeyToAccount } from "viem/accounts"; 
 
 const account = {};
 
@@ -290,55 +289,6 @@ const BalanceCard = () => {
 
   return (
     <>
-      {/* <div className="w-full max-w-md mx-auto inset-0 bg-gradient-to-r via-violet-500 from-slate-900 to-indigo-700 opacity-35">
-        <Card className="w-full max-w-md mx-auto inset-0 bg-transparent">
-          <CardHeader>
-            <CardTitle className="flex justify-between items-center text-center">
-              <span>Regular Wallet Balance (Sepolia)</span>
-              {!walletInitialized && (
-                <span className="text-xs text-yellow-500 ms-1">
-                  Initializing...
-                </span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
-
-            <div className="space-y-4">
-              <div className="text-center">
-                {isLoading ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold">
-                    {balance ? `${Number(balance).toFixed(4)} ETH` : "0 ETH"}
-                  </p>
-                )}
-              </div>
-
-              {user?.wallet?.address && (
-                <div className="text-center">
-                  <span className="text-xs break-all text-gray-500">
-                    {user.wallet.address}
-                  </span>
-                </div>
-              )}
-
-              <Button
-                onClick={updateBalance}
-                disabled={isLoading || !walletInitialized}
-                className="w-full"
-              >
-                {isLoading ? "Refreshing..." : "Refresh Balance"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div> */} 
       <div className="relative w-full max-w-md mx-auto">
         <div className="absolute rounded-lg inset-0 bg-gradient-to-r via-violet-500 from-gray-400 to-indigo-700 opacity-20 pointer-events-none"></div>
         <Card className="relative bg-transparent w-full max-w-md mx-auto">
@@ -448,7 +398,7 @@ const BalanceCard = () => {
       </div >
       <div className="absolute bottom-0 left-0 w-[10%] h-[50%]  bg-indigo-800 blur-[154.2px]"></div>
       <div className="absolute top-0 right-0 w-[10%] h-[50%]  bg-violet-500 blur-[154.2px]"></div>
-      <ContractListener />
+
     </>
   );
 };

@@ -24,9 +24,13 @@ const ContractListener = () => {
                 0,
                 "latest"
             );
-            event.forEach((e) => {
-                
-            });
+            // event.map((e) => {
+            //     return {
+            //         sender: e.args?[0]
+            //         amount: e.args?[1],
+            //         balance: e.args?[2]
+            //     }
+            // });
             console.log(event);
         }
 
