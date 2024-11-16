@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
@@ -59,7 +60,7 @@ export default function PrivyProviders({
           createOnLogin: "users-without-wallets",
         },
         defaultChain: sepolia,
-        supportedChains: [sepolia, scrollSepolia],
+        supportedChains: [sepolia],
       }}
     >
       <SmartWalletsProvider
