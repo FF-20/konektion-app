@@ -1,35 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
-import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { ethers } from "ethers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { parseEther, parseGwei } from "viem";
-import { sepolia } from "viem/chains";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-    FormDescription,
-} from "@/components/ui/form";
-import { Input } from "./ui/input";
 
 const BalanceCard = () => {
     const { ready, user } = usePrivy();
-    const [balance, setBalance] = useState<string | undefined>(undefined);
-    const [smartWalletBalance, setSmartWalletBalance] = useState<string | undefined>(undefined);
+    const [smartWalletBalance, setSmartWalletBalance] = useState<
+        string | undefined
+    >(undefined);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [walletInitialized, setWalletInitialized] = useState(false);
-    const [smartWalletInitialized, setSmartWalletInitialized] = useState(true);
-    const { client: smartContractClient } = useSmartWallets();
 
     const getProvider = () => {
         return new ethers.providers.EtherscanProvider(
@@ -39,7 +24,7 @@ const BalanceCard = () => {
     };
 
     const updateBalance = async () => {
-        if (!ready || !user?.wallet?.address || !user?.smartWallet?.address) {
+        if (!ready || !user?.smartWallet?.address) {
             console.log("Skipping balance update - prerequisites not met");
             return;
         }
@@ -49,27 +34,11 @@ const BalanceCard = () => {
 
         try {
             const provider = getProvider();
-            if (user.wallet) {
-                const balanceInWei = await provider.getBalance(
-                    user.wallet.address
-                );
-                const balanceInEth = ethers.utils.formatEther(balanceInWei);
-                // const smartWallet = user?.linkedAccounts.find((account) => account.type === "smart_wallet")
-                console.log(user?.linkedAccounts);
-                console.log(user);
-
-                setBalance(balanceInEth);
-                setWalletInitialized(true);
-            }
-            if (user.smartWallet) {
-                const swBalanceInWei = await provider.getBalance(
-                    user.smartWallet.address
-                );
-                const swBalanceInEth = ethers.utils.formatEther(swBalanceInWei);
-
-                setSmartWalletBalance(swBalanceInEth);
-                setSmartWalletInitialized(true);
-            }
+            const swBalanceInWei = await provider.getBalance(
+                user.smartWallet.address
+            );
+            const swBalanceInEth = ethers.utils.formatEther(swBalanceInWei);
+            setSmartWalletBalance(swBalanceInEth);
         } catch (error) {
             console.error("Error fetching balance:", error);
             setError(
@@ -77,48 +46,39 @@ const BalanceCard = () => {
                     error instanceof Error ? error.message : "Unknown error"
                 }`
             );
-            setWalletInitialized(false);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const sendSmartWalletTransaction = async () => {
-        if (!smartContractClient) return;
-        console.log(smartContractClient.account);
-        const txHash = await smartContractClient.sendTransaction({
-            account: smartContractClient.account,
-            chain: sepolia,
-            to: "0xbc0b9bC6c967BA2e837F4D0069Ed2C2c8ce8425E",
-            value: parseEther("0.0001"),
-            maxFeePerGas: parseGwei("20"), // don't change this
-            maxPriorityFeePerGas: parseGwei("20"), // don't change this
-        });
-    };
-
     const FormSchema = z.object({
-        receiver: z.string().nonempty({
-            message: "Receiver address is required",
+        receiver: z.string().regex(/^0x[a-fA-F0-9]{40}$/, {
+            message: "Receiver address must be a valid Ethereum address",
         }),
-        amount: z
-            .string()
-            .refine(
-                (val) => !isNaN(Number(val)) && Number(val) >= 0.0001,
-                "Amount must be at least 0.0001"
-            ),
+        //amount should be less than or equal to the balance
+        amount: z.string().refine(
+            (val) => {
+                if (!smartWalletBalance) return false;
+                return Number(val) <= Number(smartWalletBalance);
+            },
+            {
+                message: "Insufficient balance",
+            }
+        ),
     });
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            amount: "0.0001",
+            // amount: "0.0001",
         },
     });
 
-    // Initial setup effect
     useEffect(() => {
-        updateBalance();
-    }, [ready, user?.wallet?.address]);
+        if (ready && user?.smartWallet?.address) {
+            updateBalance();
+        }
+    }, [ready, user?.smartWallet?.address]);
 
     return (
         <>
@@ -126,13 +86,8 @@ const BalanceCard = () => {
                 <div className="absolute rounded-lg inset-0 bg-gradient-to-r via-violet-500 from-gray-400 to-indigo-700 opacity-20 pointer-events-none"></div>
                 <Card className="relative bg-transparent w-full max-w-md mx-auto">
                     <CardHeader>
-                        <CardTitle className="flex justify-between items-center text-center">
-                            <span>Smart Wallet Balance (Sepolia)</span>
-                            {!smartWalletInitialized && (
-                                <span className="text-xs text-yellow-500 ms-1">
-                                    Initializing...
-                                </span>
-                            )}
+                        <CardTitle className="flex justify-center items-center text-center">
+                            <p>Wallet Balance</p>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -167,64 +122,18 @@ const BalanceCard = () => {
                                     </span>
                                 </div>
                             )}
-
-                            <Form {...form}>
-                                <form
-                                    onSubmit={form.handleSubmit(
-                                        sendSmartWalletTransaction
-                                    )}
-                                    className="w-full space-y-6"
-                                >
-                                    <FormField
-                                        control={form.control}
-                                        name="amount"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Amount"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="receiver"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Receiver"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <Button
-                                        onClick={updateBalance}
-                                        disabled={
-                                            isLoading || !walletInitialized
-                                        }
-                                        className="w-full"
-                                    >
-                                        {isLoading
-                                            ? "Refreshing..."
-                                            : "Refresh Balance"}
-                                    </Button>
-                                    <Button
-                                        // disabled={isLoading || !walletInitialized}
-                                        className="w-full"
-                                        type="submit"
-                                    >
-                                        Send Smart Wallet Transaction
-                                    </Button>
-                                </form>
-                            </Form>
+                            <Button
+                                type="button"
+                                onClick={updateBalance}
+                                disabled={
+                                    isLoading || !user?.smartWallet?.address
+                                }
+                                className="w-full"
+                            >
+                                {isLoading
+                                    ? "Refreshing..."
+                                    : "Refresh Balance"}
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>

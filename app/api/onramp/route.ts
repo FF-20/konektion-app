@@ -20,21 +20,16 @@ const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
 const MOONPAY_BASE_URL = process.env.MOONPAY_BASE_URL;
 const MOONPAY_SECRET_KEY = process.env.MOONPAY_SECRET_KEY as string;
-const SMART_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_SMART_CONTRACT_ADDRESS as string;
 
 if (!MOONPAY_SECRET_KEY) {
     throw new Error("Moonpay secret key is not defined in environment variables.");
-}
-
-if (!SMART_CONTRACT_ADDRESS) {
-    throw new Error("Smart contract address is not defined in environment variables.");
 }
 
 const client = new PrivyClient(PRIVY_APP_ID!, PRIVY_APP_SECRET!);
 
 export async function POST(request: NextRequest) {
     // Authenticate user
-    const { redirectUrl, theme, authToken, email } = await request.json();
+    const { address, redirectUrl, theme, authToken, email } = await request.json();
     const cookieStore = cookies();
     const cookieAuthToken = cookieStore.get("privy-token")?.value;
 
@@ -60,7 +55,7 @@ export async function POST(request: NextRequest) {
         // Construct the onramp URL, using the smart contract address instead of user's wallet
         let onrampUrl = new URL(MOONPAY_BASE_URL as string);
         onrampUrl.searchParams.set("apiKey", process.env.MOONPAY_API_KEY as string);
-        onrampUrl.searchParams.set("walletAddress", SMART_CONTRACT_ADDRESS);
+        onrampUrl.searchParams.set("walletAddress", address);
         onrampUrl.searchParams.set("redirectURL", redirectUrl);
 
         // (Optional) If user has an email linked, specify the user's email to pre-fill for KYC
@@ -79,8 +74,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             url: onrampUrl.toString(),
             claims,
-            contractAddress: SMART_CONTRACT_ADDRESS,
-        } as AuthenticateSuccessResponse & { contractAddress: string });
+        } as AuthenticateSuccessResponse);
     } catch (error: any) {
         return NextResponse.json(
             { error: error.message } as AuthenticationErrorResponse,
