@@ -80,29 +80,29 @@ export default function PrivyProviders({
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },
-        defaultChain: baseSepolias,
-        supportedChains: [sepolia, baseSepolias],
+        defaultChain: sepolia,
+        supportedChains: [baseSepolia, sepolia],
       }}
     >
       <SmartWalletsProvider
-        // config={{
-        //   paymasterContext: {
-        //     mode: "SPONSORED",
-        //     calculateGasLimits: true,
-        //     expiryDuration: 300,
-        //     sponsorshipInfo: {
-        //       webhookData: {},
-        //       smartAccountInfo: {
-        //         name: "BICONOMY",
-        //         version: "2.0.0",
-        //       },
-        //     },
-        //   },
-        // }}
+        config={{
+          paymasterContext: {
+            mode: "SPONSORED",
+            calculateGasLimits: true,
+            expiryDuration: 300,
+            sponsorshipInfo: {
+              webhookData: {},
+              smartAccountInfo: {
+                name: "BICONOMY",
+                version: "2.0.0",
+              },
+            },
+          },
+        }}
       >
-        <OnchainKitProvider apiKey="oIivHYJeI70CgGdccASaEfX8E6eXj8IU" chain={baseSepolia}>
+        {/* <OnchainKitProvider apiKey="oIivHYJeI70CgGdccASaEfX8E6eXj8IU" chain={baseSepolia}> */}
           {children}
-        </OnchainKitProvider>
+        {/* </OnchainKitProvider> */}
         {/* <WagmiProvider config={wagmiConfig} reconnectOnMount={false}> */}
         {/* </WagmiProvider> */}
       </SmartWalletsProvider>
