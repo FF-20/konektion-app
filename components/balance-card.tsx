@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import React, { useState, useEffect } from "react";
@@ -7,7 +8,7 @@ import { ethers } from "ethers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { parseEther, parseGwei, defineChain } from "viem";
-import { sepolia } from "viem/chains";
+import { baseSepolia, sepolia } from "viem/chains";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -23,7 +24,6 @@ import {
 import { Input } from "./ui/input";
 // import { useWriteContract } from "wagmi";
 import { createPublicClient, http } from 'viem';
-import { scrollSepolia } from 'viem/chains';
 import twosball from '../context/twosball.json'
 
 const BalanceCard = () => {
@@ -60,7 +60,7 @@ const BalanceCard = () => {
 
   // Client to test call contract.
   const viemClient = createPublicClient({
-    chain: sepolia,
+    chain: baseSepolia,
     transport: http(),
   });
 
@@ -71,48 +71,72 @@ const BalanceCard = () => {
     );
   };
 
-  const updateBalance = async () => {
-    console.log(user);
-    if (!ready || !user?.wallet?.address || !user?.smartWallet?.address) {
-      console.log("Skipping balance update - prerequisites not met");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
+  async function getSmartWalletBalance(address: any) {
     try {
-      const provider = getProvider();
-      if (user.wallet) {
-        const balanceInWei = await provider.getBalance(user.wallet.address);
-        const balanceInEth = ethers.utils.formatEther(balanceInWei);
-        // const smartWallet = user?.linkedAccounts.find((account) => account.type === "smart_wallet")
-        console.log(user?.linkedAccounts);
-        console.log(user);
-
-        setBalance(balanceInEth);
-        setWalletInitialized(true);
-      }
-      if (user.smartWallet) {
-        const swBalanceInWei = await provider.getBalance(
-          user.smartWallet.address
-        );
-        const swBalanceInEth = ethers.utils.formatEther(swBalanceInWei);
-
-        setSmartWalletBalance(swBalanceInEth);
-        setSmartWalletInitialized(true);
-      }
+      // Get the balance
+      const balance = await viemClient.getBalance({
+        address: address,
+      });
+  
+      // Format balance to ether
+      const balanceInEther = balance / BigInt(10 ** 18);
+  
+      return {
+        wei: balance,
+        ether: balanceInEther
+      };
     } catch (error) {
-      console.error("Error fetching balance:", error);
-      setError(
-        `Failed to fetch balance: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-      setWalletInitialized(false);
-    } finally {
-      setIsLoading(false);
+      console.error("Error fetching wallet balance:", error);
+      throw error;
     }
+  }
+
+  const updateBalance = async () => {
+    // console.log(user);
+    // if (!ready || !user?.wallet?.address || !user?.smartWallet?.address) {
+    //   console.log("Skipping balance update - prerequisites not met");
+    //   return;
+    // }
+
+    // setIsLoading(true);
+    // setError(null);
+
+    // try {
+    //   const provider = getProvider();
+    //   if (user.wallet) {
+    //     const balanceInWei = await provider.getBalance(user.wallet.address);
+    //     const balanceInEth = ethers.utils.formatEther(balanceInWei);
+    //     // const smartWallet = user?.linkedAccounts.find((account) => account.type === "smart_wallet")
+    //     console.log(user?.linkedAccounts);
+    //     console.log(user);
+
+    //     setBalance(balanceInEth);
+    //     setWalletInitialized(true);
+    //   }
+    //   if (user.smartWallet) {
+    //     const swBalanceInWei = await provider.getBalance(
+    //       user.smartWallet.address
+    //     );
+    //     const swBalanceInEth = ethers.utils.formatEther(swBalanceInWei);
+
+    //     setSmartWalletBalance(swBalanceInEth);
+    //     setSmartWalletInitialized(true);
+    //   }
+    // } catch (error) {
+    //   console.error("Error fetching balance:", error);
+    //   setError(
+    //     `Failed to fetch balance: ${
+    //       error instanceof Error ? error.message : "Unknown error"
+    //     }`
+    //   );
+    //   setWalletInitialized(false);
+    // } finally {
+    //   setIsLoading(false);
+    // }
+    const balance = await getSmartWalletBalance("0x040B97f5074E905C8fcd301Bf0815B78A001235D");
+    const balanceInEth = ethers.utils.formatEther(balance.ether);
+    setSmartWalletBalance(balanceInEth);
+    console.log(balance);
   };
 
 
@@ -140,13 +164,15 @@ const BalanceCard = () => {
 
   const sendSmartWalletTransaction = async (values: FormInput) => {
     console.log("Sending transaction");
+    updateBalance();
     if (!smartContractClient)
         return;
-    console.log(smartContractClient);
+    console.log(smartContractClient.client);
+    console.log(baseSepolia);
     const txHash = await smartContractClient.sendTransaction({
         account: smartContractClient.account,
-        chain: sepolia,
-        to: '0xbc0b9bC6c967BA2e837F4D0069Ed2C2c8ce8425E', // SW address.
+        chain: smartContractClient.chain,
+        to: '0x3E62e75e71Ae8342F255cF6A8A3574fcdC1C7610', // SW address.
         // to: `0x${values.receiver.slice(2)}`,
         value: parseEther('0.01'),  
         // value: parseEther(values.amount),
@@ -157,6 +183,7 @@ const BalanceCard = () => {
 };
 
   const testSmartContractCall = async () => {
+    updateBalance();
     // console.log("test call");
     // writeContract({
     //   abi: twosball,
@@ -177,7 +204,7 @@ const BalanceCard = () => {
   // Initial setup effect
   useEffect(() => {
     updateBalance();
-  }, [ready, user?.wallet?.address]);
+  }, []);
 
   return (
     <>
