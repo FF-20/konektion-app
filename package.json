@@ -9,9 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@coinbase/onchainkit": "^0.35.5",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@hookform/resolvers": "^3.9.1",
-    "@privy-io/react-auth": "^1.94.2",
+    "@privy-io/react-auth": "^1.88.3",
     "@privy-io/wagmi": "^0.2.12",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
     "@radix-ui/react-label": "^2.1.0",

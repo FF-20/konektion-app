@@ -5,9 +5,11 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { useTheme } from "next-themes";
 import { defineChain, http } from "viem";
 
-import {SmartWalletsProvider} from '@privy-io/react-auth/smart-wallets';
-import { base, sepolia, scrollSepolia } from "viem/chains";
+import { SmartWalletsProvider } from "@privy-io/react-auth/smart-wallets";
+import { base, sepolia, baseSepolia, scrollSepolia } from "viem/chains";
 import { WagmiProvider, createConfig } from "@privy-io/wagmi";
+
+import { OnchainKitProvider } from "@coinbase/onchainkit";
 
 export default function PrivyProviders({
   children,
@@ -15,24 +17,43 @@ export default function PrivyProviders({
   children: React.ReactNode;
 }) {
   const { theme, setTheme } = useTheme();
-  // const scrollSepolia = defineChain({
-  //   id: 534351, // Replace this with your chain's ID
-  //   name: "Scroll Sepolia",
-  //   network: "scroll-sepolia",
-  //   nativeCurrency: {
-  //     decimals: 18, // Replace this with the number of decimals for your chain's native token
-  //     name: "Ethereum",
-  //     symbol: "ETH",
-  //   },
-  //   rpcUrls: {
-  //     default: {
-  //       http: ["https://sepolia-rpc.scroll.io"],
-  //     },
-  //   },
-  //   blockExplorers: {
-  //     default: { name: "Explorer", url: "https://sepolia.scrollscan.com" },
-  //   },
-  // });
+  const scrollSepolia = defineChain({
+    id: 534351, // Replace this with your chain's ID
+    name: "Scroll Sepolia",
+    network: "scroll-sepolia",
+    nativeCurrency: {
+      decimals: 18, // Replace this with the number of decimals for your chain's native token
+      name: "Ethereum",
+      symbol: "ETH",
+    },
+    rpcUrls: {
+      default: {
+        http: ["https://sepolia-rpc.scroll.io"],
+      },
+    },
+    blockExplorers: {
+      default: { name: "Explorer", url: "https://sepolia.scrollscan.com" },
+    },
+  });
+
+  const baseSepolias = defineChain({
+    id: 84532, // Replace this with your chain's ID
+    name: "Base Sepolia",
+    network: "base-sepolia",
+    nativeCurrency: {
+      decimals: 18, // Replace this with the number of decimals for your chain's native token
+      name: "Ethereum",
+      symbol: "ETH",
+    },
+    rpcUrls: {
+      default: {
+        http: ["https://sepolia.base.org"],
+      },
+    },
+    blockExplorers: {
+      default: { name: "Explorer", url: "https://sepolia.basescan.com" },
+    },
+  });
 
   console.log(scrollSepolia);
   console.log(sepolia);
@@ -40,8 +61,8 @@ export default function PrivyProviders({
   const wagmiConfig = createConfig({
     chains: [sepolia, scrollSepolia],
     transports: {
-      [sepolia.id]: http('https://rpc.sepolia.org'),
-      [scrollSepolia.id]: http('https://sepolia-rpc.scroll.io'),
+      [sepolia.id]: http("https://rpc.sepolia.org"),
+      [scrollSepolia.id]: http("https://sepolia-rpc.scroll.io"),
     },
   });
 
@@ -59,28 +80,30 @@ export default function PrivyProviders({
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },
-        defaultChain: sepolia,
-        supportedChains: [sepolia],
+        defaultChain: baseSepolias,
+        supportedChains: [sepolia, baseSepolias],
       }}
     >
       <SmartWalletsProvider
-        config={{
-          paymasterContext: {
-            mode: "SPONSORED",
-            calculateGasLimits: true,
-            expiryDuration: 300,
-            sponsorshipInfo: {
-              webhookData: {},
-              smartAccountInfo: {
-                name: "BICONOMY",
-                version: "2.0.0",
-              },
-            },
-          },
-        }}
+        // config={{
+        //   paymasterContext: {
+        //     mode: "SPONSORED",
+        //     calculateGasLimits: true,
+        //     expiryDuration: 300,
+        //     sponsorshipInfo: {
+        //       webhookData: {},
+        //       smartAccountInfo: {
+        //         name: "BICONOMY",
+        //         version: "2.0.0",
+        //       },
+        //     },
+        //   },
+        // }}
       >
-        {/* <WagmiProvider config={wagmiConfig} reconnectOnMount={false}> */}
+        <OnchainKitProvider apiKey="oIivHYJeI70CgGdccASaEfX8E6eXj8IU" chain={baseSepolia}>
           {children}
+        </OnchainKitProvider>
+        {/* <WagmiProvider config={wagmiConfig} reconnectOnMount={false}> */}
         {/* </WagmiProvider> */}
       </SmartWalletsProvider>
     </PrivyProvider>

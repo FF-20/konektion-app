@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
@@ -7,9 +8,9 @@ import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { ethers } from "ethers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { parseEther, parseGwei, defineChain } from "viem";
+import { parseEther, parseGwei, defineChain, encodeFunctionData } from "viem";
 import { baseSepolia, sepolia } from "viem/chains";
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -23,8 +24,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "./ui/input";
 // import { useWriteContract } from "wagmi";
-import { createPublicClient, http } from 'viem';
-import twosball from '../context/twosball.json'
+import { createPublicClient, http } from "viem";
+import twosball from "../context/twosball.json";
+
+import { createPimlicoClient } from "permissionless/clients/pimlico";
+import { createSmartAccountClient } from "permissionless";
+
+
+const account = {};
 
 const BalanceCard = () => {
   const { ready, user } = usePrivy();
@@ -35,8 +42,8 @@ const BalanceCard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [walletInitialized, setWalletInitialized] = useState(false);
-  const [smartWalletInitialized, setSmartWalletInitialized] = useState(false);
-  const { client: smartContractClient } = useSmartWallets();
+  const [smartWalletInitialized, setSmartWalletInitialized] = useState(true);
+  const { client } = useSmartWallets();
   // const { writeContract } = useWriteContract();
 
   const scrollSepolias = defineChain({
@@ -64,6 +71,39 @@ const BalanceCard = () => {
     transport: http(),
   });
 
+  //THIS
+  const baseTx = async () => {
+    const rpcUrl = 'https://api.developer.coinbase.com/rpc/v1/base-sepolia/oIivHYJeI70CgGdccASaEfX8E6eXj8IU'; // Get yours at https://www.coinbase.com/cloud/products/base/rpc
+    const cloudPaymaster = createPimlicoClient({
+      chain: baseSepolia,
+      transport: http(rpcUrl),
+    });
+
+    const account = '';
+    const baseSmartWalletClient = createSmartAccountClient({
+      account: '0x040B97f5074E905C8fcd301Bf0815B78A001235D',
+      chain: baseSepolia,
+      bundlerTransport: http(rpcUrl),
+      paymaster: cloudPaymaster
+    })
+
+    const callData = encodeFunctionData({
+      abi: twosball,
+      functionName: 'mintTo',
+      args: ['0x040B97f5074E905C8fcd301Bf0815B78A001235D', 0],
+    })
+
+    const txHash = await baseSmartWalletClient.sendTransaction({
+      account: '0x040B97f5074E905C8fcd301Bf0815B78A001235D',
+      to: "0x3E62e75e71Ae8342F255cF6A8A3574fcdC1C7610",
+      data: callData,
+      value: BigInt(0)
+    })
+
+    console.log(txHash);
+
+  };
+
   const getProvider = () => {
     return new ethers.providers.EtherscanProvider(
       "sepolia",
@@ -77,13 +117,13 @@ const BalanceCard = () => {
       const balance = await viemClient.getBalance({
         address: address,
       });
-  
+
       // Format balance to ether
       const balanceInEther = balance / BigInt(10 ** 18);
-  
+
       return {
         wei: balance,
-        ether: balanceInEther
+        ether: balanceInEther,
       };
     } catch (error) {
       console.error("Error fetching wallet balance:", error);
@@ -133,22 +173,24 @@ const BalanceCard = () => {
     // } finally {
     //   setIsLoading(false);
     // }
-    const balance = await getSmartWalletBalance("0x040B97f5074E905C8fcd301Bf0815B78A001235D");
-    const balanceInEth = ethers.utils.formatEther(balance.ether);
-    setSmartWalletBalance(balanceInEth);
+    const balance = await getSmartWalletBalance(
+      "0x040B97f5074E905C8fcd301Bf0815B78A001235D"
+    );
     console.log(balance);
+    const balanceInEth = ethers.utils.formatEther(balance.wei);
+    setSmartWalletBalance(balanceInEth);
+    console.log("SHOUDL DISPLAY: ", balanceInEth);
   };
-
-
 
   const FormSchema = z.object({
     receiver: z.string(),
-    amount: z.string()
-        .refine(
-            (val) => !isNaN(Number(val)) && Number(val) >= 0.0001,
-            "Amount must be at least 0.0001"
-        )
-})
+    amount: z
+      .string()
+      .refine(
+        val => !isNaN(Number(val)) && Number(val) >= 0.0001,
+        "Amount must be at least 0.0001"
+      ),
+  });
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -165,22 +207,23 @@ const BalanceCard = () => {
   const sendSmartWalletTransaction = async (values: FormInput) => {
     console.log("Sending transaction");
     updateBalance();
-    if (!smartContractClient)
-        return;
-    console.log(smartContractClient.client);
+    console.log("SCC:", client)
+    if (!client) return;
+    console.log(client.client);
     console.log(baseSepolia);
-    const txHash = await smartContractClient.sendTransaction({
-        account: smartContractClient.account,
-        chain: smartContractClient.chain,
-        to: '0x3E62e75e71Ae8342F255cF6A8A3574fcdC1C7610', // SW address.
-        // to: `0x${values.receiver.slice(2)}`,
-        value: parseEther('0.01'),  
-        // value: parseEther(values.amount),
-        maxFeePerGas: parseGwei('2'), // don't change this
-        maxPriorityFeePerGas: parseGwei('2'), // don't change this
-    })
+    const txHash = await client.sendTransaction({
+      account: client.account,
+      chain: baseSepolia,
+      to: "0x3E62e75e71Ae8342F255cF6A8A3574fcdC1C7610", // SW address.
+      // to: `0x${values.receiver.slice(2)}`,
+      value: parseEther("0.01"),
+      // value: parseEther(values.amount),
+      maxFeePerGas: parseGwei("2"), // don't change this
+      maxPriorityFeePerGas: parseGwei("2"), // don't change this
+    });
     console.log(txHash);
-};
+    // baseTx();
+  };
 
   const testSmartContractCall = async () => {
     updateBalance();
@@ -192,10 +235,11 @@ const BalanceCard = () => {
     //   args: [parseEther("0.001")],
     // });
     const result = await viemClient.simulateContract({
-      address: '0x8Bbf08B5E9F88F8CAdb0d4760b1C60E25edaFba1',
+      address: "0x9fe1B04D7a2BeB28BfAE67929839C8Fd6eE68174",
       abi: twosball,
-      functionName: 'deposit',
-      args: [parseEther('0.001')], // Replace with actual arguments
+      functionName: "Deposit",
+      args: [BigInt(123)], // Replace with actual arguments
+      value: BigInt(1e18),
     });
 
     console.log(result);
@@ -347,10 +391,7 @@ const BalanceCard = () => {
               Send Smart Wallet Transaction
             </Button> */}
 
-            <Button
-              onClick={testSmartContractCall}
-              className="w-full"
-            >
+            <Button onClick={testSmartContractCall} className="w-full">
               Testing Smart Contract Sponsored Call
             </Button>
           </div>
