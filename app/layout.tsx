@@ -6,11 +6,12 @@ import Link from "next/link";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import PrivyProvider from "@/components/privy-provider";
 import AuthButton from "@/components/header-auth";
+import { ContractProvider } from "@/context/contract-client";
 
 const fredoka = Fredoka({
-  subsets: ["latin"],
-  variable: "--font-fredoka",
-  weight: ["300", "400", "500", "600", "700"],
+    subsets: ["latin"],
+    variable: "--font-fredoka",
+    weight: ["300", "400", "500", "600", "700"],
 });
 
 const APP_NAME = "Konektion";
@@ -73,34 +74,36 @@ export default function RootLayout({
                     disableTransitionOnChange
                 >
                     <PrivyProvider>
-                        <main className="min-h-screen flex flex-col items-center">
-                            <div className="flex-1 w-full flex flex-col items-center h-full">
-                                <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 z-50">
-                                    <div className="w-full max-w-5xl flex justify-between items-center p-3 text-sm">
-                                        <div className="flex gap-5 items-center font-semibold">
-                                            <Link
-                                                href="/"
-                                                className="flex items-center gap-2"
-                                            >
-                                                <img
-                                                    src="/android-chrome-192x192.png"
-                                                    alt="Konektion"
-                                                    className="h-10 w-10"
-                                                />
-                                                <span>Konektion</span>
-                                            </Link>
+                        <ContractProvider>
+                            <main className="min-h-screen flex flex-col items-center">
+                                <div className="flex-1 w-full flex flex-col items-center h-full">
+                                    <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 z-50">
+                                        <div className="w-full max-w-5xl flex justify-between items-center p-3 text-sm">
+                                            <div className="flex gap-5 items-center font-semibold">
+                                                <Link
+                                                    href="/"
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <img
+                                                        src="/android-chrome-192x192.png"
+                                                        alt="Konektion"
+                                                        className="h-10 w-10"
+                                                    />
+                                                    <span>Konektion</span>
+                                                </Link>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <AuthButton />
+                                                <ThemeSwitcher />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center">
-                                            <AuthButton />
-                                            <ThemeSwitcher />
-                                        </div>
+                                    </nav>
+                                    <div className="flex flex-1 justify-center items-center w-full h-full max-w-5xl">
+                                        {children}
                                     </div>
-                                </nav>
-                                <div className="flex flex-1 justify-center items-center w-full h-full max-w-5xl">
-                                    {children}
                                 </div>
-                            </div>
-                        </main>
+                            </main>
+                        </ContractProvider>
                     </PrivyProvider>
                 </ThemeProvider>
             </body>
