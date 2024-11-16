@@ -2,6 +2,7 @@
 import BalanceCard from "@/components/balance-card";
 import DepositBtn from "@/components/deposit-btn";
 import SendTx from "@/components/send-tx";
+import ReceiveTx from "@/components/receive-tx";
 import ContractListener from "@/components/contract-listener";
 
 export default function DashboardPage() {
@@ -12,6 +13,7 @@ export default function DashboardPage() {
                 <DepositBtn />
                 <BalanceCard />
                 <SendTx />
+                <ReceiveTx />
                 <ContractListener/>
             </main>
         </>

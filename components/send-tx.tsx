@@ -16,8 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { sepolia } from "viem/chains";
-import { parseEther, parseGwei } from "viem";
+import { Copy } from "lucide-react";
 
 function SendTx() {
     const { ready, user } = usePrivy();
@@ -32,12 +31,12 @@ function SendTx() {
     const sendSmartWalletTransaction = async (
         values: z.infer<typeof FormSchema>
     ) => {
-        const { amount, receiver } = values;
+        const { amount } = values;
         setIsProcessing(true);
         setError(null);
 
         try {
-            await sendTx(amount, receiver);
+            await sendTx(amount);
         } catch (error) {
             console.error("Error sending transaction:", error);
             setError(
@@ -50,27 +49,23 @@ function SendTx() {
         }
     };
 
-    const sendTx = async (amount: any, receiver: any) => {
+    const sendTx = async (amount: any) => {
         if (!smartContractClient || !user?.smartWallet?.address) {
             setError("Smart wallet not initialized");
             return;
         }
 
-        const txHash = await smartContractClient.sendTransaction({
-            account: smartContractClient.account,
-            chain: sepolia,
-            to: receiver,
-            value: parseEther(amount),
-            maxFeePerGas: parseGwei("20"), // don't change this
-            maxPriorityFeePerGas: parseGwei("20"), // don't change this
-        });
+        // const txHash = await smartContractClient.sendTransaction({
+        //     account: smartContractClient.account,
+        //     chain: sepolia,
+        //     to: receiver,
+        //     value: parseEther(amount),
+        //     maxFeePerGas: parseGwei("20"), // don't change this
+        //     maxPriorityFeePerGas: parseGwei("20"), // don't change this
+        // });
     };
 
     const FormSchema = z.object({
-        receiver: z.string().regex(/^0x[a-fA-F0-9]{40}$/, {
-            message: "Receiver address must be a valid Ethereum address",
-        }),
-        //amount should be less than or equal to the balance
         amount: z.string().refine(
             (val) => {
                 if (!smartWalletBalance) return false;
@@ -129,21 +124,6 @@ function SendTx() {
                                             </FormItem>
                                         )}
                                     />
-                                    <FormField
-                                        control={form.control}
-                                        name="receiver"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Receiver"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
                                     <Button
                                         type="submit"
                                         disabled={
@@ -154,10 +134,19 @@ function SendTx() {
                                     >
                                         {isProcessing
                                             ? "Processing..."
-                                            : "Send Transaction"}
+                                            : "Generate Link"}
                                     </Button>
                                 </form>
                             </Form>
+
+                            <div className="flex items-center space-x-4">
+                                <Input
+                                    className="w-full"
+                                    placeholder="Receiver Address"
+                                    disabled
+                                />
+                                <Button><Copy /></Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
