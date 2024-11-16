@@ -5,11 +5,11 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { useTheme } from "next-themes";
 import { defineChain, http } from "viem";
 
-import { SmartWalletsProvider } from "@privy-io/react-auth/smart-wallets";
-import { base, sepolia, baseSepolia, scrollSepolia } from "viem/chains";
+import {SmartWalletsProvider} from '@privy-io/react-auth/smart-wallets';
+import { baseSepolia, sepolia, scrollSepolia } from "viem/chains";
 import { WagmiProvider, createConfig } from "@privy-io/wagmi";
 
-import { OnchainKitProvider } from "@coinbase/onchainkit";
+// import { OnchainKitProvider } from "@coinbase/onchainkit";
 
 export default function PrivyProviders({
   children,

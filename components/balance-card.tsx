@@ -35,6 +35,7 @@ import {
   toEcdsaKernelSmartAccount,
 } from "permissionless/accounts";
 import { privateKeyToAccount } from "viem/accounts";
+import ContractListener from "./contract-listener";
 
 const account = {};
 
@@ -289,151 +290,165 @@ const BalanceCard = () => {
 
   return (
     <>
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center text-center">
-            <span>Regular Wallet Balance (Sepolia)</span>
-            {!walletInitialized && (
-              <span className="text-xs text-yellow-500 ms-1">
-                Initializing...
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
-
-          <div className="space-y-4">
-            <div className="text-center">
-              {isLoading ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                  <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                  <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                </div>
-              ) : (
-                <p className="text-2xl font-bold">
-                  {balance ? `${Number(balance).toFixed(4)} ETH` : "0 ETH"}
-                </p>
-              )}
-            </div>
-
-            {user?.wallet?.address && (
-              <div className="text-center">
-                <span className="text-xs break-all text-gray-500">
-                  {user.wallet.address}
+      {/* <div className="w-full max-w-md mx-auto inset-0 bg-gradient-to-r via-violet-500 from-slate-900 to-indigo-700 opacity-35">
+        <Card className="w-full max-w-md mx-auto inset-0 bg-transparent">
+          <CardHeader>
+            <CardTitle className="flex justify-between items-center text-center">
+              <span>Regular Wallet Balance (Sepolia)</span>
+              {!walletInitialized && (
+                <span className="text-xs text-yellow-500 ms-1">
+                  Initializing...
                 </span>
-              </div>
-            )}
-
-            <Button
-              onClick={updateBalance}
-              disabled={isLoading || !walletInitialized}
-              className="w-full"
-            >
-              {isLoading ? "Refreshing..." : "Refresh Balance"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center text-center">
-            <span>Smart Wallet Balance (Sepolia)</span>
-            {!smartWalletInitialized && (
-              <span className="text-xs text-yellow-500 ms-1">
-                Initializing...
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
-
-          <div className="space-y-4">
-            <div className="text-center">
-              {isLoading ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                  <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                  <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
-                </div>
-              ) : (
-                <p className="text-2xl font-bold">
-                  {smartWalletBalance
-                    ? `${Number(smartWalletBalance).toFixed(4)} ETH`
-                    : "0 ETH"}
-                </p>
               )}
-            </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
 
-            {user?.smartWallet?.address && (
+            <div className="space-y-4">
               <div className="text-center">
-                <span className="text-xs break-all text-gray-500">
-                  {user.smartWallet.address}
-                </span>
+                {isLoading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold">
+                    {balance ? `${Number(balance).toFixed(4)} ETH` : "0 ETH"}
+                  </p>
+                )}
               </div>
-            )}
 
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(sendSmartWalletTransaction)}
-                className="w-full space-y-6"
+              {user?.wallet?.address && (
+                <div className="text-center">
+                  <span className="text-xs break-all text-gray-500">
+                    {user.wallet.address}
+                  </span>
+                </div>
+              )}
+
+              <Button
+                onClick={updateBalance}
+                disabled={isLoading || !walletInitialized}
+                className="w-full"
               >
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder="Amount" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="receiver"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder="Receiver" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  onClick={updateBalance}
-                  disabled={isLoading || !walletInitialized}
-                  className="w-full"
-                >
-                  {isLoading ? "Refreshing..." : "Refresh Balance"}
-                </Button>
-                <Button
-                  //   onClick={sendSmartWalletTransaction}
-                  // disabled={isLoading || !walletInitialized}
-                  className="w-full"
-                  type="submit"
-                >
-                  Send Smart Wallet Transaction
-                </Button>
-              </form>
-            </Form>
+                {isLoading ? "Refreshing..." : "Refresh Balance"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div> */} 
+      <div className="relative w-full max-w-md mx-auto">
+        <div className="absolute rounded-lg inset-0 bg-gradient-to-r via-violet-500 from-gray-400 to-indigo-700 opacity-20 pointer-events-none"></div>
+        <Card className="relative bg-transparent w-full max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="flex justify-between items-center text-center">
+              <span>Smart Wallet Balance (Sepolia)</span>
+              {!smartWalletInitialized && (
+                <span className="text-xs text-yellow-500 ms-1">
+                  Initializing...
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
 
-            {/* <Button
-              onClick={sendSmartWalletTransaction}
-              // disabled={isLoading || !walletInitialized}
-              className="w-full"
-            >
-              Send Smart Wallet Transaction
-            </Button> */}
+            <div className="space-y-4">
+              <div className="text-center">
+                {isLoading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold">
+                    {smartWalletBalance
+                      ? `${Number(smartWalletBalance).toFixed(4)} ETH`
+                      : "0 ETH"}
+                  </p>
+                )}
+              </div>
 
             <Button onClick={testSmartContractCall} className="w-full">
               Testing Smart Contract Sponsored Call
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+              {user?.smartWallet?.address && (
+                <div className="text-center">
+                  <span className="text-xs break-all text-gray-500">
+                    {user.smartWallet.address}
+                  </span>
+                </div>
+              )}
+
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(sendSmartWalletTransaction)}
+                  className="w-full space-y-6"
+                >
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Amount" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="receiver"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Receiver" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    onClick={updateBalance}
+                    disabled={isLoading || !walletInitialized}
+                    className="w-full"
+                  >
+                    {isLoading ? "Refreshing..." : "Refresh Balance"}
+                  </Button>
+                  <Button
+                    //   onClick={sendSmartWalletTransaction}
+                    // disabled={isLoading || !walletInitialized}
+                    className="w-full"
+                    type="submit"
+                  >
+                    Send Smart Wallet Transaction
+                  </Button>
+                </form>
+              </Form>
+
+              {/* <Button
+                onClick={sendSmartWalletTransaction}
+                // disabled={isLoading || !walletInitialized}
+                className="w-full"
+              >
+                Send Smart Wallet Transaction
+              </Button> */}
+
+              <Button
+                onClick={testSmartContractCall}
+                className="w-full"
+              >
+                Testing Smart Contract Sponsored Call
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div >
+      <div className="absolute bottom-0 left-0 w-[10%] h-[50%]  bg-indigo-800 blur-[154.2px]"></div>
+      <div className="absolute top-0 right-0 w-[10%] h-[50%]  bg-violet-500 blur-[154.2px]"></div>
+      <ContractListener />
     </>
   );
 };
