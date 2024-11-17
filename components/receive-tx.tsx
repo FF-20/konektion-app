@@ -17,6 +17,10 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 
+const formSchema = z.object({
+    link: z.string().nonempty(),
+});
+
 function ReceiveTx() {
     const { ready, user } = usePrivy();
     const [smartWalletBalance, setSmartWalletBalance] = useState<
@@ -26,6 +30,17 @@ function ReceiveTx() {
     const [error, setError] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const { client: smartContractClient } = useSmartWallets();
+
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            link: "",
+        },
+    });
+
+    function onSubmit(values: z.infer<typeof formSchema>) {
+        console.log(values);
+    }
     return (
         <>
             <div className="relative w-full max-w-md mx-auto">
@@ -44,8 +59,34 @@ function ReceiveTx() {
                         )}
 
                         <div className="space-y-4">
-                            {/* input - ask for user to enter link */}
-                            {/* button to submit */}
+                            <Form {...form}>
+                                <form
+                                    onSubmit={form.handleSubmit(onSubmit)}
+                                    className="space-y-8"
+                                >
+                                    <FormField
+                                        control={form.control}
+                                        name="link"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Link</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="uuid.testbuild.eth"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormDescription>
+                                                    Enter the link to receive
+                                                    payment
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <Button type="submit">Submit</Button>
+                                </form>
+                            </Form>
                         </div>
                     </CardContent>
                 </Card>

@@ -83,7 +83,7 @@ const BalanceCard = () => {
     return (
         <>
             <div className="relative w-full max-w-md mx-auto">
-                <div className="absolute rounded-lg inset-0 bg-gradient-to-r via-violet-500 from-gray-400 to-indigo-700 opacity-20 pointer-events-none"></div>
+                <div className="absolute rounded-lg inset-0 bg-gradient-to-r via-violet-500 from-violet-400 to-indigo-700 pointer-events-none"></div>
                 <Card className="relative bg-transparent w-full max-w-md mx-auto">
                     <CardHeader>
                         <CardTitle className="flex justify-center items-center text-center">
@@ -106,7 +106,7 @@ const BalanceCard = () => {
                                         <div className="w-4 h-4 rounded-full animate-pulse bg-gray-400" />
                                     </div>
                                 ) : (
-                                    <p className="text-2xl font-bold">
+                                    <p className="text-4xl font-bold">
                                         {smartWalletBalance
                                             ? `${Number(
                                                   smartWalletBalance
@@ -117,7 +117,7 @@ const BalanceCard = () => {
                             </div>
                             {user?.smartWallet?.address && (
                                 <div className="text-center">
-                                    <span className="text-xs break-all text-gray-500">
+                                    <span className="text-xs break-all">
                                         {user.smartWallet.address}
                                     </span>
                                 </div>
